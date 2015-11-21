@@ -83,8 +83,8 @@ function Footbar:onPlay()
 	    return false
 	end
     end)
-    db.print("Began play Footbar")
 end
+
 function Footbar:onEnter()
     db.print("enter Footbar")
 end

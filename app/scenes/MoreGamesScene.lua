@@ -68,7 +68,7 @@ function MoreGamesScene:staticPanel()
     local levelCount = 0
     if GameData.CustomLevel and #GameData.CustomLevel >= 1 then
 	levelCount = #GameData.CustomLevel
-	db.print("levelCount:", levelCount)
+	-- db.print("levelCount:", levelCount)
     end
 
     local startX = (display.width - colWidth * (cols - 1)) / 2
@@ -119,11 +119,9 @@ function MoreGamesScene:onTouch(event, x, y)
     end
 
     if event == "began" then
-	db.print("button touch began")
 	self.highlightButton:setVisible(true)
 	self.highlightButton:setPosition(button:getPosition())
     else
-	db.print("button touch ended")
 	self.highlightButton:setVisible(false)
 	local levelIndex = button.levelIndex
 	if levelIndex > 0 then

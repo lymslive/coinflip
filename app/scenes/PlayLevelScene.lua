@@ -1,5 +1,6 @@
 
 local Levels = import("..data.Levels")
+local Solved = import("..data.Solved")
 local Board = import("..views.Board")
 local AdBar = import("..views.AdBar")
 local TextButton = import("..ui.TextButton")
@@ -45,6 +46,7 @@ function PlayLevelScene:ctor(levelIndex)
     self.board:addEventListener("LEVEL_COMPLETED", handler(self, self.onLevelCompleted))
     self:addChild(self.board)
     self.board:addEventListener("FLIP_ONCE", handler(self, self.onFlipOnce))
+    self.board:addEventListener("ANSWER_FINISH", handler(self, self.offAnswer))
 
     -- cc.ui.UIPushButton.new({normal = "#BackButton.png", pressed = "#BackButtonSelected.png"})
     TextButton.new("Back")
@@ -53,10 +55,15 @@ function PlayLevelScene:ctor(levelIndex)
         :addTo(self)
 
     -- retry 文字标签
-    TextButton.new("Retry")
+    self.retryLabel = TextButton.new("Retry")
 	:align(display.CENTER, display.right - 100, display.top - 150)
 	:onButtonClicked(function() self:onRetry() end)
 	:addTo(self)
+
+    -- 添加 Answer 文字标签
+    self:addAnswerLabel()
+
+    self.labelEnable = true
 
     -- 监听手机硬件返回按键
     display.newLayer()
@@ -81,6 +88,17 @@ function PlayLevelScene:createLevelLabel()
 	align = cc.ui.TEXT_ALIGN_LEFT,
     })
     self:addChild(label)
+end
+
+function PlayLevelScene:addAnswerLabel()
+    self.answerLabel = TextButton.new("Answer")
+	:align(display.CENTER, display.cx, display.top - 150)
+	:onButtonClicked(function() self:onAnswer() end)
+	:addTo(self)
+    self.answerLabeling = TextButton.new("Sovling...")
+	:align(display.CENTER, display.cx, display.top - 150)
+	:addTo(self)
+	:setVisible(false)
 end
 
 function PlayLevelScene:onLevelCompleted()
@@ -126,14 +144,54 @@ end
 
 function PlayLevelScene:onRetry()
     if self.flipsCount_ == 0 then return end
-    db.print("retry button clicked")
+    if not self.labelEnable then return end
+
     self.board:replaceCoins()
     self.flipsCount_  = 0
     self.flips_:setString(string.format("flips: %d", self.flipsCount_))
+
+    if self.answerDone then
+	self.answerLabel:setVisible(true)
+	self.answerLabeling:setVisible(false)
+	self.board.playForever = false
+	self.board:setTouchEnabled(true)
+    end
 end
 
 function PlayLevelScene:onBack()
     app:enterChooseLevelScene(self.levelIndex_)
+end
+
+-- 开始播放答案
+function PlayLevelScene:onAnswer()
+    if not self.labelEnable then return end
+    if type(self.levelIndex_) ~= "number" then
+	return
+    end
+    local solve = Solved:getRandomSolve(self.levelIndex_)
+
+    self:onRetry()
+    self.labelEnable = false
+
+    self.retryLabel:setVisible(false)
+    self.answerLabel:setVisible(false)
+    self.answerLabeling:setString("Solving...")
+    self.answerLabeling:setVisible(true)
+    self.answerDone = false
+
+    self.board:playAnswer(solve)
+
+end
+
+-- 播放答案结束              
+function PlayLevelScene:offAnswer()
+    self.labelEnable = true
+    -- self:onRetry()
+    self.retryLabel:setVisible(true)
+    -- self.answerLabel:setVisible(true)
+    -- self.answerLabeling:setVisible(false)
+    self.answerLabeling:setString("Done!")
+    self.answerDone = true
 end
 
 function PlayLevelScene:onEnter()

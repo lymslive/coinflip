@@ -64,7 +64,7 @@ function MenuScene:ctor()
 	end)
     --]]
 
-    db.print("ctor MenuScene")
+    -- db.print("ctor MenuScene")
     self.footbar = Footbar.new("mainsc", "common") :addTo(self)
 
     -- language 文字标签
@@ -81,7 +81,7 @@ function MenuScene:ctor()
 end
 
 function MenuScene:onEnter()
-    db.print("enter MenuScene")
+    -- db.print("enter MenuScene")
 end
 
 function MenuScene:onLang()

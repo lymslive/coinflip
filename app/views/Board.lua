@@ -11,6 +11,8 @@ local NODE_ZORDER    = 0
 
 local COIN_ZORDER    = 1000
 
+Board.AnswerDelay = 2
+
 -- Board 的构造函数支持两种参数
 -- levelIndex，数字类型，表示关卡数
 -- levelData,  表格类型，表示关卡结构
@@ -181,16 +183,46 @@ function Board:onTouch(event, x, y)
             and y >= cy - padding
             and y <= cy + padding then
             self:flipCoin(coin, true)
+	    self:dispatchEvent({name = "FLIP_ONCE"})
             break
         end
     end
-    self:dispatchEvent({name = "FLIP_ONCE"})
 end
 
 -- 随机翻一个
 function Board:randomFlip(includeNeighbour)
     local index = math.random(#self.coins)
     self:flipCoin(self.coins[index], includeNeighbour)
+end
+
+-- 插入答案
+function Board:playAnswer(solve)
+    self:setTouchEnabled(false)
+    self.playForever = true
+
+    local aseq = {}
+    local delay = cc.DelayTime:create(Board.AnswerDelay)
+    for i, pos in ipairs(solve) do
+	local coin = self:getCoin(pos.row, pos.col)
+	local callFlip = cc.CallFunc:create(function()
+	    self:flipCoin(coin, true)
+	    self:dispatchEvent({name = "FLIP_ONCE"})
+	end)
+	table.insert(aseq, delay)
+	table.insert(aseq, callFlip)
+    end
+    -- table.insert(aseq, delay)
+
+    local finish = cc.CallFunc:create(function()
+	-- self:setTouchEnabled(true)
+	self:dispatchEvent({name = "ANSWER_FINISH"})
+	-- self.playForever = false
+    end)
+    table.insert(aseq, finish)
+
+    local action = transition.sequence(aseq)
+    self:runAction(action)
+
 end
 
 function Board:onEnter()

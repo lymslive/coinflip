@@ -41,6 +41,10 @@ function PlayCustomScene:createLevelLabel()
     self:addChild(label)
 end
 
+function PlayCustomScene:addAnswerLabel()
+    return
+end
+
 function PlayCustomScene:onBack()
     app:enterMoreGamesScene()
 end
